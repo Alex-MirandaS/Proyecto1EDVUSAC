@@ -1,31 +1,28 @@
 package Proyecto;
-import Compilador.Token;
-import Compilador.TokenConstants;
+import java_cup.runtime.Symbol;
 %%
 
+%public
+%class Lexer
+%cup
+%line
+%column
+%state STRING
+%standalone
+
+//DECLARACIONES EN JAVA
 %{
-
-    // Max size of string constants
-    static int MAX_STR_CONST = 1025;
-
-    // For assembling string constants
+//CUP
     StringBuffer string = new StringBuffer();
+
+    private Symbol symbol(int type){
+        return new Symbol(type, yyline, yycolumn);
+    }
+
+    private Symbol symbol(int type, Object value){
+        return new Symbol(type, yyline, yycolumn, value);
+    }
     
-
-    private int curr_lineno = 1;
-    int get_curr_lineno() {
-	return curr_lineno;
-    }
-/*
-    private AbstractSymbol filename;
-
-    void set_filename(String fname) {
-	filename = AbstractTable.stringtable.addString(fname);
-    }
-
-    AbstractSymbol curr_filename() {
-	return filename;
-    }*/
 %}
 
 %init{
@@ -34,24 +31,9 @@ import Compilador.TokenConstants;
 
 %eofval{
 
-/*
-    switch(zzLexicalState) {
-        case YYINITIAL:
--        //nada
-        break;
-    }
-    return new Symbol(TokenConstants.EOF);
-*/
+    return symbol(ParserSym.EOF);
 
-return new Token(TokenConstants.EOF, 0,0,null);
 %eofval}
-
-%class Lexer
-%line
-%column
-%state STRING
-%standalone
-%type Token
 
 //VALORES PRIMITIVOS 
 
@@ -129,56 +111,56 @@ CHARACD = {COMS}{LETRA}{COMS}
 BOOLEAD = ({TRUE}|{FALSE})
 ID = {LETRA}({LETRA}|{DIG}|{GBAJO})*
 %%
-{COMENTS}                           {/*ignore*/}
-{COMENTM}                           {/*ignore*/}
-{MAS} {return new Token(TokenConstants.MAS, yyline+1, yycolumn+1, yytext());}
-{DIV} {return new Token(TokenConstants.DIV, yyline+1, yycolumn+1, yytext());}
-{MEN} {return new Token(TokenConstants.MEN, yyline+1, yycolumn+1, yytext());}
-{MULT} {return new Token(TokenConstants.MULT, yyline+1, yycolumn+1, yytext());}
-{ASIG} {return new Token(TokenConstants.ASIG, yyline+1, yycolumn+1, yytext());}
-{IGUAL} {return new Token(TokenConstants.IGUAL, yyline+1, yycolumn+1, yytext());}
-{DESIG} {return new Token(TokenConstants.DESIG, yyline+1, yycolumn+1, yytext());}
-{MENORQ} {return new Token(TokenConstants.MENORQ, yyline+1, yycolumn+1, yytext());}
-{MENORI} {return new Token(TokenConstants.MENORI, yyline+1, yycolumn+1, yytext());}
-{MAYORQ} {return new Token(TokenConstants.MAYORQ, yyline+1, yycolumn+1, yytext());}
-{MAYORI} {return new Token(TokenConstants.MAYORI, yyline+1, yycolumn+1, yytext());}
-{PUNTO} {return new Token(TokenConstants.PUNTO, yyline+1, yycolumn+1, yytext());}
-{COMA} {return new Token(TokenConstants.COMA, yyline+1, yycolumn+1, yytext());}
-{PYCOMA} {return new Token(TokenConstants.PYCOMA, yyline+1, yycolumn+1, yytext());}
-{DOSPUNTOS} {return new Token(TokenConstants.DOSPUNTOS, yyline+1, yycolumn+1, yytext());}
-{PARAB} {return new Token(TokenConstants.PARAB, yyline+1, yycolumn+1, yytext());}
-{PARCER} {return new Token(TokenConstants.PARCER, yyline+1, yycolumn+1, yytext());}
-{LLAB} {return new Token(TokenConstants.LLAB, yyline+1, yycolumn+1, yytext());}
-{LLCER} {return new Token(TokenConstants.LLCER, yyline+1, yycolumn+1, yytext());}
-{AND} {return new Token(TokenConstants.AND, yyline+1, yycolumn+1, yytext());}
-{OR} {return new Token(TokenConstants.OR, yyline+1, yycolumn+1, yytext());}
-{NOT} {return new Token(TokenConstants.NOT, yyline+1, yycolumn+1, yytext());}
-{INT} {return new Token(TokenConstants.INT, yyline+1, yycolumn+1, yytext());}
-{DOUBLE} {return new Token(TokenConstants.DOUBLE, yyline+1, yycolumn+1, yytext());}
-{CHAR} {return new Token(TokenConstants.CHAR, yyline+1, yycolumn+1, yytext());}
-{BOOL} {return new Token(TokenConstants.BOOL, yyline+1, yycolumn+1, yytext());}
-{STRING} {return new Token(TokenConstants.STRING, yyline+1, yycolumn+1, yytext());}
-{VOID} {return new Token(TokenConstants.VOID, yyline+1, yycolumn+1, yytext());}
-{MAIN} {return new Token(TokenConstants.MAIN, yyline+1, yycolumn+1, yytext());}
-{DEF} {return new Token(TokenConstants.DEF, yyline+1, yycolumn+1, yytext());}
-{BRK} {return new Token(TokenConstants.BRK, yyline+1, yycolumn+1, yytext());}
-{RTRN} {return new Token(TokenConstants.RTRN, yyline+1, yycolumn+1, yytext());}
-{CONT} {return new Token(TokenConstants.CONT, yyline+1, yycolumn+1, yytext());}
-{CNSL} {return new Token(TokenConstants.CNSL, yyline+1, yycolumn+1, yytext());}
-{WRTE} {return new Token(TokenConstants.WRTE, yyline+1, yycolumn+1, yytext());}
-{ELSE} {return new Token(TokenConstants.ELSE, yyline+1, yycolumn+1, yytext());}
-{IF} {return new Token(TokenConstants.IF, yyline+1, yycolumn+1, yytext());}
-{SWT} {return new Token(TokenConstants.SWT, yyline+1, yycolumn+1, yytext());}
-{CASE} {return new Token(TokenConstants.CASE, yyline+1, yycolumn+1, yytext());}
-{FOR} {return new Token(TokenConstants.FOR, yyline+1, yycolumn+1, yytext());}
-{WHILE} {return new Token(TokenConstants.WHILE, yyline+1, yycolumn+1, yytext());}
-{DO} {return new Token(TokenConstants.DO, yyline+1, yycolumn+1, yytext());}
-{NEW} {return new Token(TokenConstants.NEW, yyline+1, yycolumn+1, yytext());}
-{DECD} {return new Token(TokenConstants.DECD, yyline+1, yycolumn+1, yytext());}
-{ENTD} {return new Token(TokenConstants.ENTD, yyline+1, yycolumn+1, yytext());}
-{CHARACD} {return new Token(TokenConstants.CHARACD, yyline+1, yycolumn+1, yytext());}
-{BOOLEAD} {return new Token(TokenConstants.BOOLEAD, yyline+1, yycolumn+1, yytext());}
-{ID} {return new Token(TokenConstants.ID, yyline+1, yycolumn+1, yytext());}
+{COMENTS} {return new symbol(ParserSym.COMENTS, yyline+1, yycolumn+1, yytext());}
+{COMENTM} {return new symbol(ParserSym.COMENTM, yyline+1, yycolumn+1, yytext());}
+{MAS} {return new symbol(ParserSym.MAS, yyline+1, yycolumn+1, yytext());}
+{DIV} {return new symbol(ParserSym.DIV, yyline+1, yycolumn+1, yytext());}
+{MEN} {return new symbol(ParserSym.MEN, yyline+1, yycolumn+1, yytext());}
+{MULT} {return new symbol(ParserSym.MULT, yyline+1, yycolumn+1, yytext());}
+{ASIG} {return new symbol(ParserSym.ASIG, yyline+1, yycolumn+1, yytext());}
+{IGUAL} {return new symbol(ParserSym.IGUAL, yyline+1, yycolumn+1, yytext());}
+{DESIG} {return new symbol(ParserSym.DESIG, yyline+1, yycolumn+1, yytext());}
+{MENORQ} {return new symbol(ParserSym.MENORQ, yyline+1, yycolumn+1, yytext());}
+{MENORI} {return new symbol(ParserSym.MENORI, yyline+1, yycolumn+1, yytext());}
+{MAYORQ} {return new symbol(ParserSym.MAYORQ, yyline+1, yycolumn+1, yytext());}
+{MAYORI} {return new symbol(ParserSym.MAYORI, yyline+1, yycolumn+1, yytext());}
+{PUNTO} {return new symbol(ParserSym.PUNTO, yyline+1, yycolumn+1, yytext());}
+{COMA} {return new symbol(ParserSym.COMA, yyline+1, yycolumn+1, yytext());}
+{PYCOMA} {return new symbol(ParserSym.PYCOMA, yyline+1, yycolumn+1, yytext());}
+{DOSPUNTOS} {return new symbol(ParserSym.DOSPUNTOS, yyline+1, yycolumn+1, yytext());}
+{PARAB} {return new symbol(ParserSym.PARAB, yyline+1, yycolumn+1, yytext());}
+{PARCER} {return new symbol(ParserSym.PARCER, yyline+1, yycolumn+1, yytext());}
+{LLAB} {return new symbol(ParserSym.LLAB, yyline+1, yycolumn+1, yytext());}
+{LLCER} {return new symbol(ParserSym.LLCER, yyline+1, yycolumn+1, yytext());}
+{AND} {return new symbol(ParserSym.AND, yyline+1, yycolumn+1, yytext());}
+{OR} {return new symbol(ParserSym.OR, yyline+1, yycolumn+1, yytext());}
+{NOT} {return new symbol(ParserSym.NOT, yyline+1, yycolumn+1, yytext());}
+{INT} {return new symbol(ParserSym.INT, yyline+1, yycolumn+1, yytext());}
+{DOUBLE} {return new symbol(ParserSym.DOUBLE, yyline+1, yycolumn+1, yytext());}
+{CHAR} {return new symbol(ParserSym.CHAR, yyline+1, yycolumn+1, yytext());}
+{BOOL} {return new symbol(ParserSym.BOOL, yyline+1, yycolumn+1, yytext());}
+{STRING} {return new symbol(ParserSym.STRING, yyline+1, yycolumn+1, yytext());}
+{VOID} {return new symbol(ParserSym.VOID, yyline+1, yycolumn+1, yytext());}
+{MAIN} {return new symbol(ParserSym.MAIN, yyline+1, yycolumn+1, yytext());}
+{DEF} {return new symbol(ParserSym.DEF, yyline+1, yycolumn+1, yytext());}
+{BRK} {return new symbol(ParserSym.BRK, yyline+1, yycolumn+1, yytext());}
+{RTRN} {return new symbol(ParserSym.RTRN, yyline+1, yycolumn+1, yytext());}
+{CONT} {return new symbol(ParserSym.CONT, yyline+1, yycolumn+1, yytext());}
+{CNSL} {return new symbol(ParserSym.CNSL, yyline+1, yycolumn+1, yytext());}
+{WRTE} {return new symbol(ParserSym.WRTE, yyline+1, yycolumn+1, yytext());}
+{ELSE} {return new symbol(ParserSym.ELSE, yyline+1, yycolumn+1, yytext());}
+{IF} {return new symbol(ParserSym.IF, yyline+1, yycolumn+1, yytext());}
+{SWT} {return new symbol(ParserSym.SWT, yyline+1, yycolumn+1, yytext());}
+{CASE} {return new symbol(ParserSym.CASE, yyline+1, yycolumn+1, yytext());}
+{FOR} {return new symbol(ParserSym.FOR, yyline+1, yycolumn+1, yytext());}
+{WHILE} {return new symbol(ParserSym.WHILE, yyline+1, yycolumn+1, yytext());}
+{DO} {return new symbol(ParserSym.DO, yyline+1, yycolumn+1, yytext());}
+{NEW} {return new symbol(ParserSym.NEW, yyline+1, yycolumn+1, yytext());}
+{DECD} {return new symbol(ParserSym.DECD, yyline+1, yycolumn+1, yytext());}
+{ENTD} {return new symbol(ParserSym.ENTD, yyline+1, yycolumn+1, yytext());}
+{CHARACD} {return new symbol(ParserSym.CHARACD, yyline+1, yycolumn+1, yytext());}
+{BOOLEAD} {return new symbol(ParserSym.BOOLEAD, yyline+1, yycolumn+1, yytext());}
+{ID} {return new symbol(ParserSym.ID, yyline+1, yycolumn+1, yytext());}
 <STRING> {
       \"                             { yybegin(YYINITIAL);
       System.out.println(string);
@@ -199,4 +181,4 @@ ID = {LETRA}({LETRA}|{DIG}|{GBAJO})*
 <YYINITIAL>                   { System.err.println("LEXER BUG - UNMATCHED: " + yytext); 
                                 return new Token(TokenConstants.ERROR, yyline, yycolumn,  yytext()); 
 } */  
-[^] {trow new java.io.IOException("ESTO ES UN ERROR: "+yytext())}
+[^] {throw new Error("Cadena Ilegal: "+yytext());}
