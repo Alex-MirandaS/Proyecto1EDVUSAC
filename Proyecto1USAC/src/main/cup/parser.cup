@@ -1,0 +1,202 @@
+package Compilador;
+import java_cup.runtime.*;
+import java.util.ArrayList;
+import Proyecto.Conversor;
+
+class Parser;
+/* CODIGO JAVA */
+
+parser code {:
+
+    /* CAPTURA DEL PROGRAMA */
+
+    private ArrayList <String> instrucciones = new ArrayList();
+    private ArrayList <String> errores = new ArrayList();
+    Conversor conversor = new Conversor();
+
+public void syntax_error(Symbol s){
+        
+        System.out.println("Error Sintáctico en la Línea " + (s.left) +
+        " Columna "+s.right+ ". No se esperaba este componente: " +s.value+"."); 
+        //agregar a errores
+        //this.sintaxErrors.add(new ParserError(s.left,s.right,"Sintactico","No se esperaba el simbolo "+s.value));
+    }
+
+    /**
+     * Método al que se llama automáticamente ante algún error sintáctico 
+     * en el que ya no es posible una recuperación de errores.
+     **/ 
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{ 
+        System.out.println("Error síntactico irrecuperable en la Línea " + 
+        (s.left)+ " Columna "+s.right+". Componente " + s.value + 
+        " no reconocido."); 
+        //agregar a errores
+        //this.sintaxErrors.add(new ParserError(s.left,s.right,"Sintactico","No se esperaba el simbolo "+s.value));
+    }
+
+    public ArrayList<String> getInstrucciones(){
+        return instrucciones;
+    }
+
+    public ArrayList<String> getErrores(){
+        return errores;
+    }
+:}
+
+/* TERMINALES */
+
+terminal DIG, LETRA, WhiteSpace;
+terminal MAS, DIV, MEN, MULT, ASIG, IGUAL, DESIG, MENORQ, MENORI, MAYORQ, MAYORI, PUNTO, COMA, PYCOMA, DOSPUNTOS, PARAB, PARCER, LLAB, LLCER, AND, OR, NOT, GBAJO, COMS;
+terminal INT, DOUBLE, CHAR, BOOL, STRING;
+terminal VOID, MAIN, DEF, BRK, RTRN, CONT, CNSL, WRTE;
+terminal ELSE, IF, SWT, CASE, FOR, WHILE, DO;
+terminal NEW, TRUE, FALSE;
+terminal COMENTM, COMENTS, DECD, ENTD, CHARACD, BOOLEAD, ID, STRINGD;
+
+/* NO TERMINAL */
+
+non terminal todo, comen, asign, idList, tida, paramList, datList, expr, met, llaMet,fun, main, param, sent, iff, cas, crecd, con, elseif, swit, forr, whil, dowhil, impr;
+
+/* PRECEDENCIA */
+
+precedence left MAS, MEN;
+precedence left MULT, DIV;
+
+
+todo    ::= comen 
+        | comen todo
+        | asign
+        | asign todo
+        | met
+        | met todo
+        | llaMet
+        | llaMet todo
+        | sent
+        | sent todo
+        | fun 
+        | fun todo
+        | impr 
+        | impr todo
+        | main 
+        | main todo
+        ;
+
+comen   ::= COMENTS:d     {:RESULT = instrucciones.add(conversor.comentarioS((String)d)); :}
+        | COMENTM:d       {:RESULT = instrucciones.add(conversor.comentarioM((String)d)); :}       
+        ;
+
+asign   ::= tida idList:ids PYCOMA                  {:RESULT = instrucciones.add((String)ids); :}
+        |   tida idList:ids ASIG expr:ex PYCOMA     {:RESULT = instrucciones.add((String)ids+"="+(String)ex); :}                   
+        |   idList:ids ASIG expr:ex PYCOMA          {:RESULT = instrucciones.add((String)ids+"="+(String)ex); :}    
+        ;
+
+idList  ::= ID:id COMA idList:s                     {:RESULT = (String) id+","+(String)s;:}                   
+        |   ID:id                                   {:RESULT = (String) id;:}     
+        ;
+
+tida    ::= INT 
+        |   DOUBLE
+        |   CHAR
+        |   BOOL
+        |   STRING
+        ;
+        
+expr    ::= expr:ex1 MAS expr:ex2       {:RESULT = (String)ex1+"+"+(String)ex2;:}                             
+        | expr:ex1 MEN expr:ex2         {:RESULT = (String)ex1+"-"+(String)ex2;:}                                                    
+        | expr:ex1 MULT expr:ex2        {:RESULT = (String)ex1+"*"+(String)ex2;:}                                                    
+        | expr:ex1 DIV expr:ex2         {:RESULT = (String)ex1+"/"+(String)ex2;:}                                                                                 
+        | PARAB expr:ex PARCER          {:RESULT = "("+(String)ex+")";:}
+        | llaMet:d                      {:RESULT = (String)d:}
+        | datList:d                     {:RESULT = (String)d;:}                  
+        ;
+
+llaMet  | ID:id PARAB PARCER            {:RESULT = (String)id+"()";:}                                                    
+        | ID:id PARAB paramList:p PARCER {:RESULT = (String)id+"("+(String)p+")";:}
+        ;
+
+paramList   ::= datList:d COMA paramList:p {:RESULT = (String)d+","+(String)p;:}
+            |   datList:d                  {:RESULT = (String)d;:}     
+            ;  
+
+datList ::=     ENTD:d                  {: RESULT = (String)d;:}
+            |   DECD:d                  {: RESULT = (String)d;:}
+            |   ID:d                    {: RESULT = (String)d;:}
+            |   BOOLEAD:d               {: RESULT = (String)d;:}
+            |   STRINGD:d                {: RESULT = (String)d;:}
+            ;   
+
+met     ::= VOID ID:id PARAB param:p PARCER LLAB todo LLCER     {:RESULT = instrucciones.add("def"+(String)id+"("+(String)p+"):");:}
+        |   VOID ID:id PARAB param:p PARCER LLAB LLCER          {:RESULT = instrucciones.add("def"+(String)id+"("+(String)p+"):");:}
+        |   VOID ID:id PARAB PARCER LLAB todo LLCER             {:RESULT = instrucciones.add("def"+(String)id+"():");:}   
+        |   VOID ID:id PARAB PARCER LLAB LLCER                  {:RESULT = instrucciones.add("def"+(String)id+"():");:}   
+        ;
+
+fun     ::= tida ID:id PARAB param:p PARCER LLAB todo LLCER     {:RESULT = instrucciones.add("def"+(String)id+"("+(String)p+"):");:}
+        |   tida ID:id PARAB param:p PARCER LLAB LLCER          {:RESULT = instrucciones.add("def"+(String)id+"("+(String)p+"):");:}
+        |   tida ID:id PARAB PARCER LLAB todo LLCER             {:RESULT = instrucciones.add("def"+(String)id+"():");:}
+        |   tida ID:id PARAB PARCER LLAB LLCER                  {:RESULT = instrucciones.add("def"+(String)id+"():");:}
+        ;
+    
+main    ::= VOID MAIN PARAB PARCER LLAB todo LLCER              {:RESULT = instrucciones.add("def main():");:}
+        |   VOID MAIN PARAB PARCER LLAB LLCER                   {:RESULT = instrucciones.add("def main():");:}
+        ;
+
+param   ::= tida ID:id COMA param;p          {:RESULT = (String)id+","+(String)p;:}
+        |   tida ID:id                       {:RESULT = (String)id;:}
+        ;
+
+sent    ::= iff
+        |   swit
+        |   forr
+        |   whil
+        |   dowhil
+        ;
+
+iff     ::= IF PARAB con:c PARCER LLAB todo LLCER elseif        {:RESULT = instrucciones.add("if "+(String)c+":");:}
+        |   IF PARAB con:c PARCER LLAB todo LLCER               {:RESULT = instrucciones.add("if "+(String)c+":");:}     
+        ;
+
+elseif  ::= ELSE IF PARAB con PARCER LLAB todo LLCER elseif     {:RESULT = instrucciones.add("elif "+(String)c+":");:}
+        |   ELSE IF PARAB con PARCER LLAB todo LLCER            {:RESULT = instrucciones.add("elif "+(String)c+":");:}
+        |   ELSE LLAB todo LLCER                                {:RESULT = instrucciones.add("else:");:}
+        ;
+
+swit    ::= SWT PARAB expr PARCER LLAB cas LLCER
+        |   SWT PARAB expr PARCER LLAB cas DEF DOSPUNTOS todo LLCER
+        ;
+
+cas     ::= CASE expr DOSPUNTOS todo cas
+        |   CASE expr DOSPUNTOS todo 
+        |   CASE expr DOSPUNTOS todo BRK PYCOMA cas
+        |   CASE expr DOSPUNTOS todo BRK PYCOMA 
+        
+        ;
+
+forr    ::= FOR PARAB INT ID ASIG expr PYCOMA con PYCOMA crecd PARCER LLAB todo LLCER
+        ;
+        
+whil    ::= WHILE PARAB con PARCER LLAB todo LLCER
+        ;
+
+dowhil  ::= DO LLAB todo LLCER WHILE PARAB con PARCER PYCOMA
+        ;
+
+crecd   ::= ID MAS MAS
+        |   ID MEN MEN
+        |   MAS MAS ID
+        |   MEN MEN ID
+        ;
+
+con     ::= expr IGUAL expr 
+        |   expr DESIG expr 
+        |   expr MENORQ expr
+        |   expr MENORI expr
+        |   expr MAYORQ expr
+        |   expr MAYORI expr
+        |   expr
+        ;
+
+impr    ::= CNSL PUNTO WRTE PARAB expr PARCER PYCOMA
+        ;
+
+
